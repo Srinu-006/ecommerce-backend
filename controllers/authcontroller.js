@@ -52,13 +52,26 @@ exports.login = async (req, res) => {
 
 exports.signup = async (req, res) => {
     try{
-        const user = await User.create(req.body);
+        const { email, password } = req.body;
+        const existingUser = await User.findOne({ email });
+        if(existingUser){
+            return res.status(400).json({
+                status: "Failed",
+                message: "User already exists"
+            })
+        }
+        const user = await User.create({
+            email,
+            password
+        });
         user.password = undefined;
         const token = signToken(user._id);
         res.status(201).json({
             status: "Success",
             token,
-            data: user
+            data: {
+                user
+            }
         })
     } catch(err){
             res.status(400).json({
